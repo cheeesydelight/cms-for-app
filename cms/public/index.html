@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Couple Canvas CMS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#faf9f8;color:#18181b;min-height:100vh}
+.header{background:#18181b;color:#fff;padding:20px 32px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:20px;font-weight:700}
+.header span{font-size:13px;color:#a1a1aa;margin-left:4px}
+.container{max-width:900px;margin:0 auto;padding:32px}
+.section{background:#fff;border-radius:16px;padding:28px;margin-bottom:24px;border:1px solid #e4e4e7}
+.section h2{font-size:17px;font-weight:700;margin-bottom:4px}
+.section p{font-size:13px;color:#71717a;margin-bottom:20px}
+.icon-preview{width:120px;height:120px;border-radius:24px;border:2px dashed #d4d4d8;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:16px;background:#f4f4f5}
+.icon-preview img{width:100%;height:100%;object-fit:cover}
+.icon-preview .placeholder{font-size:40px;color:#d4d4d8}
+.upload-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{padding:10px 20px;border-radius:100px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:#18181b;color:#fff}
+.btn-primary:hover{background:#27272a}
+.btn-outline{background:transparent;border:1.5px solid #e4e4e7;color:#18181b}
+.btn-outline:hover{background:#f4f4f5}
+.btn-danger{background:#ef4444;color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:6px 14px;font-size:12px}
+input[type=file]{display:none}
+.sticker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;margin-top:16px}
+.sticker-card{background:#f9f9f9;border-radius:12px;padding:12px;text-align:center;border:1px solid #e4e4e7;position:relative}
+.sticker-card img{width:100%;height:100px;object-fit:contain;border-radius:8px;margin-bottom:8px}
+.sticker-card .name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sticker-card .category{font-size:11px;color:#71717a}
+.sticker-card .delete-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:12px;background:#ef4444;color:#fff;border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.sticker-card:hover .delete-btn{opacity:1}
+.form-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.form-field{flex:1;min-width:150px}
+.form-field label{display:block;font-size:12px;font-weight:600;color:#71717a;margin-bottom:4px}
+.form-field input,.form-field select{width:100%;padding:8px 12px;border:1.5px solid #e4e4e7;border-radius:8px;font-size:13px;outline:none}
+.form-field input:focus,.form-field select:focus{border-color:#18181b}
+.toast{position:fixed;bottom:24px;right:24px;background:#18181b;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:32px;color:#a1a1aa;font-size:13px}
+.stats{display:flex;gap:24px;margin-bottom:20px}
+.stat{background:#f4f4f5;padding:12px 20px;border-radius:10px}
+.stat .val{font-size:22px;font-weight:700}
+.stat .label{font-size:11px;color:#71717a}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Couple Canvas</h1>
+  <span>CMS</span>
+</div>
+
+<div class="container">
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="val" id="statStickers">0</div>
+      <div class="label">Stickers</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="statIcon">—</div>
+      <div class="label">App Icon</div>
+    </div>
+  </div>
+
+  <!-- App Icon Section -->
+  <div class="section">
+    <h2>App Icon</h2>
+    <p>Upload the app icon. Recommended: 512x512 PNG with transparency.</p>
+    <div class="icon-preview" id="iconPreview">
+      <span class="placeholder" id="iconPlaceholder">+</span>
+      <img id="iconImg" style="display:none" />
+    </div>
+    <div class="upload-row">
+      <label class="btn btn-primary" for="iconInput">Upload Icon</label>
+      <input type="file" id="iconInput" accept="image/*" />
+      <span id="iconInfo" style="font-size:12px;color:#71717a"></span>
+    </div>
+  </div>
+
+  <!-- Stickers Section -->
+  <div class="section">
+    <h2>Stickers & Images</h2>
+    <p>Add stickers and images that appear in the whiteboard and snap sections of the app.</p>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Sticker Name</label>
+        <input type="text" id="stickerName" placeholder="e.g. Heart" />
+      </div>
+      <div class="form-field">
+        <label>Category</label>
+        <select id="stickerCategory">
+          <option value="general">General</option>
+          <option value="love">Love</option>
+          <option value="fun">Fun</option>
+          <option value="nature">Nature</option>
+          <option value="food">Food</option>
+          <option value="emoji">Emoji</option>
+        </select>
+      </div>
+      <div class="form-field" style="display:flex;align-items:flex-end">
+        <label class="btn btn-outline" for="stickerInput" style="text-align:center;width:100%">Choose File</label>
+        <input type="file" id="stickerInput" accept="image/*" />
+      </div>
+    </div>
+    <div id="stickerUploadStatus" style="font-size:12px;color:#71717a;margin-bottom:8px"></div>
+    <div class="sticker-grid" id="stickerGrid"></div>
+    <div class="empty" id="stickerEmpty">No stickers yet. Upload your first one above.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(`${API}/api/data`);
+    const data = await res.json();
+
+    // Icon
+    if (data.appIcon) {
+      document.getElementById('iconImg').src = data.appIcon.url;
+      document.getElementById('iconImg').style.display = 'block';
+      document.getElementById('iconPlaceholder').style.display = 'none';
+      document.getElementById('iconInfo').textContent = `Uploaded ${new Date(data.appIcon.uploadedAt).toLocaleDateString()}`;
+      document.getElementById('statIcon').textContent = 'Set';
+    }
+
+    // Stickers
+    const grid = document.getElementById('stickerGrid');
+    const empty = document.getElementById('stickerEmpty');
+    grid.innerHTML = '';
+    if (data.stickers.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      data.stickers.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'sticker-card';
+        card.innerHTML = `
+          <button class="delete-btn" onclick="deleteSticker('${s.id}')">&times;</button>
+          <img src="${s.url}" alt="${s.name}" />
+          <div class="name">${s.name}</div>
+          <div class="category">${s.category}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+    document.getElementById('statStickers').textContent = data.stickers.length;
+  } catch (e) {
+    console.error('Load error:', e);
+  }
+}
+
+// Upload icon
+document.getElementById('iconInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('icon', file);
+  try {
+    const res = await fetch(`${API}/api/icon`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Upload failed');
+    showToast('App icon updated');
+    loadData();
+  } catch (err) {
+    showToast('Failed to upload icon');
+  }
+  e.target.value = '';
+});
+
+// Upload sticker
+document.getElementById('stickerInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const name = document.getElementById('stickerName').value || file.name;
+  const category = document.getElementById('stickerCategory').value;
+  const fd = new FormData();
+  fd.append('sticker', file);
+  fd.append('name', name);
+  fd.append('category', category);
+  document.getElementById('stickerUploadStatus').textContent = 'Uploading...';
+  try {
+    const res = await fetch(`${API}/api/stickers`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Upload failed');
+    showToast('Sticker added');
+    document.getElementById('stickerName').value = '';
+    document.getElementById('stickerUploadStatus').textContent = '';
+    loadData();
+  } catch (err) {
+    showToast('Failed to upload sticker');
+    document.getElementById('stickerUploadStatus').textContent = '';
+  }
+  e.target.value = '';
+});
+
+// Delete sticker
+async function deleteSticker(id) {
+  if (!confirm('Delete this sticker?')) return;
+  try {
+    await fetch(`${API}/api/stickers/${id}`, { method: 'DELETE' });
+    showToast('Sticker deleted');
+    loadData();
+  } catch (err) {
+    showToast('Failed to delete sticker');
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
