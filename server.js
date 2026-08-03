@@ -33,6 +33,55 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+// Rebuild data.json from Cloudinary on startup (handles Render ephemeral storage)
+async function syncFromCloudinary() {
+  try {
+    console.log('Syncing data from Cloudinary...');
+    const data = { appIcon: null, stickers: [] };
+
+    // Fetch icons
+    const icons = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'ustwo/icons/',
+      max_results: 1,
+      resource_type: 'image',
+    });
+    if (icons.resources.length > 0) {
+      const icon = icons.resources[0];
+      data.appIcon = {
+        publicId: icon.public_id,
+        url: icon.secure_url,
+        uploadedAt: icon.created_at,
+      };
+    }
+
+    // Fetch stickers
+    const stickers = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'ustwo/stickers/',
+      max_results: 100,
+      resource_type: 'image',
+    });
+    data.stickers = stickers.resources.map(r => ({
+      id: `sticker_${r.created_at}`,
+      publicId: r.public_id,
+      url: r.secure_url,
+      name: path.parse(r.public_id).name,
+      category: 'general',
+      uploadedAt: r.created_at,
+    }));
+
+    saveData(data);
+    console.log(`Synced: 1 icon, ${data.stickers.length} stickers`);
+  } catch (err) {
+    console.error('Cloudinary sync failed:', err.message);
+    // If no data.json exists, create empty one
+    if (!fs.existsSync(DATA_FILE)) {
+      saveData({ appIcon: null, stickers: [] });
+    }
+  }
+}
+
 // Multer: store in memory for Cloudinary upload
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -148,6 +197,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`CMS running at http://localhost:${PORT}`);
+// Sync from Cloudinary before starting
+syncFromCloudinary().then(() => {
+  app.listen(PORT, () => {
+    console.log(`CMS running at http://localhost:${PORT}`);
+  });
 });
