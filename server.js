@@ -63,7 +63,7 @@ async function syncFromCloudinary() {
       resource_type: 'image',
     });
     data.stickers = stickers.resources.map(r => ({
-      id: `sticker_${r.created_at}`,
+      id: 'sticker_' + r.created_at,
       publicId: r.public_id,
       url: r.secure_url,
       name: path.parse(r.public_id).name,
@@ -72,10 +72,9 @@ async function syncFromCloudinary() {
     }));
 
     saveData(data);
-    console.log(`Synced: 1 icon, ${data.stickers.length} stickers`);
+    console.log('Synced: 1 icon, ' + data.stickers.length + ' stickers');
   } catch (err) {
     console.error('Cloudinary sync failed:', err.message);
-    // If no data.json exists, create empty one
     if (!fs.existsSync(DATA_FILE)) {
       saveData({ appIcon: null, stickers: [] });
     }
@@ -118,6 +117,11 @@ async function deleteFromCloudinary(publicId) {
   }
 }
 
+// Health check endpoint (for keep-alive pings)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // API: Get all CMS data
 app.get('/api/data', (req, res) => {
   res.json(loadData());
@@ -128,7 +132,6 @@ app.post('/api/icon', upload.single('icon'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
     const data = loadData();
-    // Delete old icon from Cloudinary if exists
     if (data.appIcon && data.appIcon.publicId) {
       await deleteFromCloudinary(data.appIcon.publicId);
     }
@@ -153,7 +156,7 @@ app.post('/api/stickers', upload.single('sticker'), async (req, res) => {
     const result = await uploadToCloudinary(req.file.buffer, 'ustwo/stickers');
     const data = loadData();
     const sticker = {
-      id: `sticker_${Date.now()}`,
+      id: 'sticker_' + Date.now(),
       publicId: result.public_id,
       url: result.secure_url,
       name: req.body.name || req.file.originalname,
@@ -197,9 +200,21 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Self-ping every 14 minutes to prevent Render free tier from sleeping
+function keepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL;
+  if (url) {
+    setInterval(() => {
+      fetch(url + '/health').catch(() => {});
+    }, 14 * 60 * 1000);
+    console.log('Keep-alive enabled: pinging ' + url + '/health every 14 min');
+  }
+}
+
 // Sync from Cloudinary before starting
 syncFromCloudinary().then(() => {
   app.listen(PORT, () => {
-    console.log(`CMS running at http://localhost:${PORT}`);
+    console.log('CMS running at http://localhost:' + PORT);
+    keepAlive();
   });
 });
