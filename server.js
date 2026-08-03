@@ -13,10 +13,19 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+console.log('Cloudinary config check:');
+console.log('  CLOUD_NAME:', cloudName ? 'SET (' + cloudName + ')' : 'MISSING');
+console.log('  API_KEY:', apiKey ? 'SET (' + apiKey + ')' : 'MISSING');
+console.log('  API_SECRET:', apiSecret ? 'SET (****)' : 'MISSING');
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
 });
 
 // In-memory metadata store (persists to JSON file)
@@ -36,6 +45,14 @@ function saveData(data) {
 // Rebuild data.json from Cloudinary on startup (handles Render ephemeral storage)
 async function syncFromCloudinary() {
   try {
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.log('Skipping Cloudinary sync — credentials not configured');
+      if (!fs.existsSync(DATA_FILE)) {
+        saveData({ appIcon: null, stickers: [] });
+      }
+      return;
+    }
+
     console.log('Syncing data from Cloudinary...');
     const data = { appIcon: null, stickers: [] };
 
@@ -74,7 +91,7 @@ async function syncFromCloudinary() {
     saveData(data);
     console.log('Synced: 1 icon, ' + data.stickers.length + ' stickers');
   } catch (err) {
-    console.error('Cloudinary sync failed:', err.message);
+    console.error('Cloudinary sync failed:', err.message || JSON.stringify(err));
     if (!fs.existsSync(DATA_FILE)) {
       saveData({ appIcon: null, stickers: [] });
     }
@@ -208,6 +225,8 @@ function keepAlive() {
       fetch(url + '/health').catch(() => {});
     }, 14 * 60 * 1000);
     console.log('Keep-alive enabled: pinging ' + url + '/health every 14 min');
+  } else {
+    console.log('Keep-alive disabled: RENDER_EXTERNAL_URL not set');
   }
 }
 
