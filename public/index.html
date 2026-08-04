@@ -211,29 +211,41 @@ function connectSSE() {
     addEventLog('system', 'Connected to server');
   };
 
-  evtSource.addEventListener('splash-update', (e) => {
+  evtSource.addEventListener('splash-changed', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('splash-update', 'Splash changed to: ' + (data.activeSplash || data.key || 'unknown'));
+    addEventLog('splash-changed', 'Splash changed to: ' + (data.activeSplash || data.key || 'unknown'));
     loadSplashSection();
     updateStats();
   });
 
-  evtSource.addEventListener('icon-update', (e) => {
+  evtSource.addEventListener('icon-changed', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('icon-update', 'Icon changed to: ' + (data.activeIcon || data.key || 'unknown'));
+    addEventLog('icon-changed', 'Icon changed to: ' + (data.activeIcon || data.key || 'unknown'));
     loadIconSection();
     updateStats();
   });
 
-  evtSource.addEventListener('sticker-add', (e) => {
+  evtSource.addEventListener('sticker-added', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('sticker-add', 'Sticker added: ' + (data.name || 'unknown'));
+    addEventLog('sticker-added', 'Sticker added: ' + (data.name || 'unknown'));
     loadStickersSection();
     updateStats();
   });
 
-  evtSource.addEventListener('sticker-delete', (e) => {
-    addEventLog('sticker-delete', 'Sticker removed');
+  evtSource.addEventListener('sticker-deleted', (e) => {
+    addEventLog('sticker-deleted', 'Sticker removed');
+    loadStickersSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('splash-uploaded', (e) => {
+    addEventLog('splash-uploaded', 'Custom splash uploaded');
+    loadSplashSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('sticker-updated', (e) => {
+    addEventLog('sticker-updated', 'Sticker updated');
     loadStickersSection();
     updateStats();
   });
