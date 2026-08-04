@@ -10,6 +10,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header{background:#18181b;color:#fff;padding:20px 32px;display:flex;align-items:center;gap:12px}
 .header h1{font-size:20px;font-weight:700}
 .header span{font-size:13px;color:#a1a1aa;margin-left:4px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;margin-left:auto;background:rgba(255,255,255,0.1)}
+.live-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.live-dot.connected{background:#34d399;animation:pulse 2s infinite}
+.live-dot.disconnected{background:#ef4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 .container{max-width:900px;margin:0 auto;padding:32px}
 .section{background:#fff;border-radius:16px;padding:28px;margin-bottom:24px;border:1px solid #e4e4e7}
 .section h2{font-size:17px;font-weight:700;margin-bottom:4px}
@@ -49,6 +54,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .stat .val{font-size:22px;font-weight:700}
 .stat .label{font-size:11px;color:#71717a}
 .status-badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46}
+
+/* Splash upload */
+.splash-upload-area{border:2px dashed #e4e4e7;border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.splash-upload-area:hover{border-color:#a1a1aa;background:#fafafa}
+.splash-upload-area.dragover{border-color:#18181b;background:#f4f4f5}
+.splash-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.splash-upload-area .upload-icon{font-size:32px;margin-bottom:8px;color:#a1a1aa}
+.splash-upload-area .upload-text{font-size:13px;color:#71717a}
+.splash-upload-area .upload-text strong{color:#18181b}
+.splash-preview{margin-top:16px;display:none}
+.splash-preview img{max-width:200px;max-height:120px;border-radius:8px;border:1px solid #e4e4e7}
+.splash-preview .preview-actions{margin-top:12px;display:flex;gap:8px;justify-content:center}
+.upload-status{font-size:12px;color:#71717a;margin-top:8px}
+.upload-status.uploading{color:#a78bfa}
+.upload-status.success{color:#34d399}
+.upload-status.error{color:#ef4444}
+
+/* Event log */
+.event-log{max-height:150px;overflow-y:auto;background:#f9f9f9;border-radius:8px;padding:12px;margin-top:12px;font-size:11px;font-family:monospace;color:#71717a}
+.event-log .event-entry{padding:2px 0;border-bottom:1px solid #f0f0f0}
+.event-log .event-entry:last-child{border-bottom:none}
+.event-log .event-time{color:#a1a1aa;margin-right:8px}
+.event-log .event-type{font-weight:600;color:#18181b}
 </style>
 </head>
 <body>
@@ -56,6 +84,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="header">
   <h1>Couple Canvas</h1>
   <span>CMS</span>
+  <div class="live-badge">
+    <span class="live-dot disconnected" id="liveDot"></span>
+    <span id="liveText">Connecting...</span>
+  </div>
 </div>
 
 <div class="container">
@@ -89,6 +121,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="icon-grid" id="splashGrid"></div>
   </div>
 
+  <!-- Upload Custom Splash Screen -->
+  <div class="section">
+    <h2>Upload Custom Splash Screen</h2>
+    <p>Upload your own image to use as the splash screen. It will be added to the selection grid above.</p>
+    <div class="splash-upload-area" id="splashUploadArea">
+      <div class="upload-icon">+</div>
+      <div class="upload-text"><strong>Click to upload</strong> or drag and drop</div>
+      <div class="upload-text" style="font-size:11px;margin-top:4px">PNG, JPG, WebP up to 5MB</div>
+      <input type="file" id="splashFileInput" accept="image/*" />
+    </div>
+    <div class="splash-preview" id="splashPreview">
+      <img id="splashPreviewImg" src="" alt="Preview" />
+      <div class="preview-actions">
+        <button class="btn btn-primary btn-sm" id="splashUploadBtn">Upload Splash</button>
+        <button class="btn btn-outline btn-sm" id="splashCancelBtn">Cancel</button>
+      </div>
+    </div>
+    <div class="upload-status" id="splashUploadStatus"></div>
+  </div>
+
   <!-- Stickers Section -->
   <div class="section">
     <h2>Stickers & Images</h2>
@@ -118,6 +170,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="sticker-grid" id="stickerGrid"></div>
     <div class="empty" id="stickerEmpty">No stickers yet. Upload your first one above.</div>
   </div>
+
+  <!-- Realtime Event Log -->
+  <div class="section">
+    <h2>Live Events</h2>
+    <p>Real-time updates from the server. Changes appear here instantly.</p>
+    <div class="event-log" id="eventLog">
+      <div class="empty" style="padding:12px">Waiting for events...</div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -125,6 +186,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <script>
 const API = '';
 
+// Toast helper
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -132,76 +194,212 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ==================== SSE REALTIME ====================
+let evtSource = null;
+let reconnectTimer = null;
+
+function connectSSE() {
+  if (evtSource) {
+    evtSource.close();
+  }
+
+  evtSource = new EventSource(API + '/api/events');
+
+  evtSource.onopen = () => {
+    document.getElementById('liveDot').className = 'live-dot connected';
+    document.getElementById('liveText').textContent = 'Live';
+    addEventLog('system', 'Connected to server');
+  };
+
+  evtSource.addEventListener('splash-update', (e) => {
+    const data = JSON.parse(e.data);
+    addEventLog('splash-update', 'Splash changed to: ' + (data.activeSplash || data.key || 'unknown'));
+    loadSplashSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('icon-update', (e) => {
+    const data = JSON.parse(e.data);
+    addEventLog('icon-update', 'Icon changed to: ' + (data.activeIcon || data.key || 'unknown'));
+    loadIconSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('sticker-add', (e) => {
+    const data = JSON.parse(e.data);
+    addEventLog('sticker-add', 'Sticker added: ' + (data.name || 'unknown'));
+    loadStickersSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('sticker-delete', (e) => {
+    addEventLog('sticker-delete', 'Sticker removed');
+    loadStickersSection();
+    updateStats();
+  });
+
+  evtSource.addEventListener('connected', (e) => {
+    addEventLog('system', 'SSE session established');
+  });
+
+  evtSource.onerror = () => {
+    document.getElementById('liveDot').className = 'live-dot disconnected';
+    document.getElementById('liveText').textContent = 'Reconnecting...';
+    addEventLog('system', 'Connection lost, reconnecting...');
+    evtSource.close();
+    // Reconnect after 3 seconds
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(connectSSE, 3000);
+  };
+}
+
+function addEventLog(type, message) {
+  const log = document.getElementById('eventLog');
+  const empty = log.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const entry = document.createElement('div');
+  entry.className = 'event-entry';
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+  entry.innerHTML = `<span class="event-time">${time}</span><span class="event-type">[${type}]</span> ${message}`;
+  log.insertBefore(entry, log.firstChild);
+
+  // Keep only last 50 entries
+  while (log.children.length > 50) {
+    log.removeChild(log.lastChild);
+  }
+}
+
+// ==================== DATA LOADING ====================
+let cachedData = null;
+
 async function loadData() {
   try {
     const res = await fetch(`${API}/api/data`);
-    const data = await res.json();
-
-    // Icon selection grid
-    const grid = document.getElementById('iconGrid');
-    grid.innerHTML = '';
-    const catalog = data.iconCatalog || [];
-    const activeKey = data.activeIcon || 'icon1';
-
-    catalog.forEach(icon => {
-      const card = document.createElement('div');
-      card.className = 'icon-card' + (icon.key === activeKey ? ' selected' : '');
-      card.innerHTML = `
-        <img src="${icon.file}" alt="${icon.name}" />
-        <div class="name">${icon.name}</div>
-      `;
-      card.onclick = () => selectIcon(icon.key);
-      grid.appendChild(card);
-    });
-
-    document.getElementById('statIcon').textContent = catalog.find(i => i.key === activeKey)?.name || activeKey;
-
-    // Splash selection grid
-    const splashGrid = document.getElementById('splashGrid');
-    splashGrid.innerHTML = '';
-    const splashCatalog = data.splashCatalog || [];
-    const activeSplashKey = data.activeSplash || 'splash1';
-
-    splashCatalog.forEach(splash => {
-      const card = document.createElement('div');
-      card.className = 'icon-card' + (splash.key === activeSplashKey ? ' selected' : '');
-      card.innerHTML = `
-        <img src="${splash.file}" alt="${splash.name}" />
-        <div class="name">${splash.name}</div>
-      `;
-      card.onclick = () => selectSplash(splash.key);
-      splashGrid.appendChild(card);
-    });
-
-    document.getElementById('statSplash').textContent = splashCatalog.find(s => s.key === activeSplashKey)?.name || activeSplashKey;
-
-    // Stickers
-    const stickerGrid = document.getElementById('stickerGrid');
-    const empty = document.getElementById('stickerEmpty');
-    stickerGrid.innerHTML = '';
-    if (data.stickers.length === 0) {
-      empty.style.display = 'block';
-    } else {
-      empty.style.display = 'none';
-      data.stickers.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'sticker-card';
-        card.innerHTML = `
-          <button class="delete-btn" onclick="deleteSticker('${s.id}')">&times;</button>
-          <img src="${s.url}" alt="${s.name}" />
-          <div class="name">${s.name}</div>
-          <div class="category">${s.category}</div>
-        `;
-        stickerGrid.appendChild(card);
-      });
-    }
-    document.getElementById('statStickers').textContent = data.stickers.length;
+    cachedData = await res.json();
+    renderAll();
   } catch (e) {
     console.error('Load error:', e);
   }
 }
 
-// Select icon
+function renderAll() {
+  if (!cachedData) return;
+  renderIconGrid(cachedData);
+  renderSplashGrid(cachedData);
+  renderStickers(cachedData);
+  updateStatsFromData(cachedData);
+}
+
+// Selective reload functions for SSE updates
+async function loadIconSection() {
+  try {
+    const res = await fetch(`${API}/api/data`);
+    cachedData = await res.json();
+    renderIconGrid(cachedData);
+    renderSplashGrid(cachedData);
+  } catch (e) {
+    console.error('Icon reload error:', e);
+  }
+}
+
+async function loadSplashSection() {
+  try {
+    const res = await fetch(`${API}/api/data`);
+    cachedData = await res.json();
+    renderSplashGrid(cachedData);
+  } catch (e) {
+    console.error('Splash reload error:', e);
+  }
+}
+
+async function loadStickersSection() {
+  try {
+    const res = await fetch(`${API}/api/data`);
+    cachedData = await res.json();
+    renderStickers(cachedData);
+  } catch (e) {
+    console.error('Stickers reload error:', e);
+  }
+}
+
+async function updateStats() {
+  try {
+    const res = await fetch(`${API}/api/data`);
+    cachedData = await res.json();
+    updateStatsFromData(cachedData);
+  } catch (e) {}
+}
+
+function renderIconGrid(data) {
+  const grid = document.getElementById('iconGrid');
+  grid.innerHTML = '';
+  const catalog = data.iconCatalog || [];
+  const activeKey = data.activeIcon || 'icon1';
+
+  catalog.forEach(icon => {
+    const card = document.createElement('div');
+    card.className = 'icon-card' + (icon.key === activeKey ? ' selected' : '');
+    card.innerHTML = `
+      <img src="${icon.file}" alt="${icon.name}" />
+      <div class="name">${icon.name}</div>
+    `;
+    card.onclick = () => selectIcon(icon.key);
+    grid.appendChild(card);
+  });
+}
+
+function renderSplashGrid(data) {
+  const splashGrid = document.getElementById('splashGrid');
+  splashGrid.innerHTML = '';
+  const splashCatalog = data.splashCatalog || [];
+  const activeSplashKey = data.activeSplash || 'splash1';
+
+  splashCatalog.forEach(splash => {
+    const card = document.createElement('div');
+    card.className = 'icon-card' + (splash.key === activeSplashKey ? ' selected' : '');
+    card.innerHTML = `
+      <img src="${splash.file}" alt="${splash.name}" />
+      <div class="name">${splash.name}</div>
+    `;
+    card.onclick = () => selectSplash(splash.key);
+    splashGrid.appendChild(card);
+  });
+}
+
+function renderStickers(data) {
+  const stickerGrid = document.getElementById('stickerGrid');
+  const empty = document.getElementById('stickerEmpty');
+  stickerGrid.innerHTML = '';
+  if (data.stickers.length === 0) {
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    data.stickers.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'sticker-card';
+      card.innerHTML = `
+        <button class="delete-btn" onclick="deleteSticker('${s.id}')">&times;</button>
+        <img src="${s.url}" alt="${s.name}" />
+        <div class="name">${s.name}</div>
+        <div class="category">${s.category}</div>
+      `;
+      stickerGrid.appendChild(card);
+    });
+  }
+}
+
+function updateStatsFromData(data) {
+  document.getElementById('statStickers').textContent = data.stickers.length;
+  const activeIconKey = data.activeIcon || 'icon1';
+  document.getElementById('statIcon').textContent = (data.iconCatalog || []).find(i => i.key === activeIconKey)?.name || activeIconKey;
+  const activeSplashKey = data.activeSplash || 'splash1';
+  document.getElementById('statSplash').textContent = (data.splashCatalog || []).find(s => s.key === activeSplashKey)?.name || activeSplashKey;
+}
+
+// ==================== ACTIONS ====================
+
 async function selectIcon(key) {
   try {
     const res = await fetch(`${API}/api/active-icon`, {
@@ -211,13 +409,11 @@ async function selectIcon(key) {
     });
     if (!res.ok) throw new Error('Failed to set icon');
     showToast('Active icon updated to ' + key);
-    loadData();
   } catch (err) {
     showToast('Failed to update icon');
   }
 }
 
-// Select splash
 async function selectSplash(key) {
   try {
     const res = await fetch(`${API}/api/active-splash`, {
@@ -227,13 +423,98 @@ async function selectSplash(key) {
     });
     if (!res.ok) throw new Error('Failed to set splash');
     showToast('Active splash updated to ' + key);
-    loadData();
   } catch (err) {
     showToast('Failed to update splash');
   }
 }
 
-// Upload sticker
+// ==================== SPLASH UPLOAD ====================
+let selectedSplashFile = null;
+
+const splashUploadArea = document.getElementById('splashUploadArea');
+const splashFileInput = document.getElementById('splashFileInput');
+const splashPreview = document.getElementById('splashPreview');
+const splashPreviewImg = document.getElementById('splashPreviewImg');
+const splashUploadBtn = document.getElementById('splashUploadBtn');
+const splashCancelBtn = document.getElementById('splashCancelBtn');
+const splashUploadStatus = document.getElementById('splashUploadStatus');
+
+// Drag and drop
+splashUploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  splashUploadArea.classList.add('dragover');
+});
+splashUploadArea.addEventListener('dragleave', () => {
+  splashUploadArea.classList.remove('dragover');
+});
+splashUploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  splashUploadArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    handleSplashFileSelect(file);
+  }
+});
+
+splashFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) handleSplashFileSelect(file);
+});
+
+function handleSplashFileSelect(file) {
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File too large. Max 5MB.');
+    return;
+  }
+  selectedSplashFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    splashPreviewImg.src = e.target.result;
+    splashPreview.style.display = 'block';
+    splashUploadArea.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+splashUploadBtn.addEventListener('click', async () => {
+  if (!selectedSplashFile) return;
+  splashUploadStatus.textContent = 'Uploading...';
+  splashUploadStatus.className = 'upload-status uploading';
+  splashUploadBtn.disabled = true;
+
+  try {
+    const fd = new FormData();
+    fd.append('splash', selectedSplashFile);
+    const res = await fetch(`${API}/api/splash`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    showToast('Custom splash uploaded!');
+    splashUploadStatus.textContent = 'Upload complete!';
+    splashUploadStatus.className = 'upload-status success';
+    resetSplashUpload();
+    // SSE will trigger reload, but also reload manually as fallback
+    setTimeout(loadData, 500);
+  } catch (err) {
+    showToast('Failed to upload splash');
+    splashUploadStatus.textContent = 'Upload failed. Try again.';
+    splashUploadStatus.className = 'upload-status error';
+  } finally {
+    splashUploadBtn.disabled = false;
+  }
+});
+
+splashCancelBtn.addEventListener('click', resetSplashUpload);
+
+function resetSplashUpload() {
+  selectedSplashFile = null;
+  splashFileInput.value = '';
+  splashPreview.style.display = 'none';
+  splashUploadArea.style.display = 'block';
+  splashUploadStatus.textContent = '';
+  splashUploadStatus.className = 'upload-status';
+}
+
+// ==================== STICKER UPLOAD ====================
 document.getElementById('stickerInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -250,7 +531,7 @@ document.getElementById('stickerInput').addEventListener('change', async (e) => 
     showToast('Sticker added');
     document.getElementById('stickerName').value = '';
     document.getElementById('stickerUploadStatus').textContent = '';
-    loadData();
+    // SSE will trigger reload
   } catch (err) {
     showToast('Failed to upload sticker');
     document.getElementById('stickerUploadStatus').textContent = '';
@@ -258,19 +539,20 @@ document.getElementById('stickerInput').addEventListener('change', async (e) => 
   e.target.value = '';
 });
 
-// Delete sticker
 async function deleteSticker(id) {
   if (!confirm('Delete this sticker?')) return;
   try {
     await fetch(`${API}/api/stickers/${id}`, { method: 'DELETE' });
     showToast('Sticker deleted');
-    loadData();
+    // SSE will trigger reload
   } catch (err) {
     showToast('Failed to delete sticker');
   }
 }
 
+// ==================== INIT ====================
 loadData();
+connectSSE();
 </script>
 </body>
 </html>
