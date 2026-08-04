@@ -3,314 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Couple Canvas CMS</title>
+<title>ustwo cms</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 
+:root{
+  --bg:#FFFDF7;
+  --card:#FFFFFF;
+  --text:#1A1A2E;
+  --muted:#9CA3AF;
+  --border:#E8E3D9;
+  --coral:#FF6B6B;
+  --mint:#4ECDC4;
+  --yellow:#FFE66D;
+  --peach:#FFB4A2;
+  --lavender:#C4B5FD;
+  --dark:#1A1A2E;
+  --radius:18px;
+  --radius-sm:12px;
+}
+
 body{
-  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:#FAFAF9;
-  color:#1e1b2e;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text);
   min-height:100vh;
   -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  background-image:radial-gradient(circle,#e8e3d9 1px,transparent 1px);
+  background-size:24px 24px;
 }
 
 /* ---- Header ---- */
 .header{
-  background:linear-gradient(135deg,#6d28d9 0%,#a78bfa 50%,#f472b6 100%);
+  background:var(--dark);
   color:#fff;
-  padding:24px 40px;
+  padding:16px 24px;
   display:flex;
   align-items:center;
   gap:12px;
   position:sticky;
   top:0;
   z-index:50;
-  backdrop-filter:saturate(180%) blur(12px);
 }
-.header h1{font-size:22px;font-weight:700;letter-spacing:-0.3px}
-.header span{font-size:13px;color:rgba(255,255,255,0.7);margin-left:4px;font-weight:500}
+.header h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:-0.5px;
+}
+.header .tag{
+  font-size:10px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  background:var(--coral);
+  padding:3px 10px;
+  border-radius:100px;
+}
 .live-badge{
   display:inline-flex;align-items:center;gap:6px;
-  padding:6px 16px;border-radius:100px;font-size:11px;font-weight:600;
+  padding:6px 14px;border-radius:100px;font-size:11px;font-weight:600;
   margin-left:auto;
-  background:rgba(255,255,255,0.18);
-  backdrop-filter:blur(4px);
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
 }
 .live-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.live-dot.connected{background:#34d399;animation:pulse 2s infinite}
-.live-dot.disconnected{background:#fca5a5}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.15)}}
-@keyframes selectPulse{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.live-dot.connected{background:var(--mint);animation:pulse 2s infinite}
+.live-dot.disconnected{background:var(--coral)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}}
+@keyframes selectPulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .icon-card.just-selected{animation:selectPulse .3s ease}
 
 /* ---- Container ---- */
-.container{max-width:920px;margin:0 auto;padding:40px 32px}
-
-/* ---- Section cards ---- */
-.section{
-  background:#fff;
-  border-radius:20px;
-  padding:32px;
-  margin-bottom:28px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.03);
-  border:1px solid rgba(0,0,0,0.04);
-  transition:box-shadow .2s;
+.container{
+  max-width:880px;
+  margin:0 auto;
+  padding:24px 16px 60px;
 }
-.section:hover{
-  box-shadow:0 2px 6px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.05);
-}
-.section h2{
-  font-size:18px;font-weight:700;margin-bottom:6px;
-  text-transform:capitalize;
-  letter-spacing:-0.2px;
-  color:#1e1b2e;
-}
-.section p{font-size:13px;color:#9ca3af;margin-bottom:24px;line-height:1.6;font-weight:400}
-
-/* ---- Icon / Splash grid ---- */
-.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
-.icon-card{
-  background:#FAFAF9;
-  border-radius:16px;
-  padding:16px 12px;
-  text-align:center;
-  border:2px solid transparent;
-  box-shadow:0 1px 3px rgba(0,0,0,0.04);
-  cursor:pointer;
-  transition:all .2s ease;
-  position:relative;
-}
-.icon-card:hover{
-  border-color:#e9e5f5;
-  box-shadow:0 4px 12px rgba(167,139,250,0.12);
-  transform:translateY(-2px);
-}
-.icon-card.selected{
-  border-color:#a78bfa;
-  background:#EDE9FE;
-  box-shadow:0 4px 16px rgba(167,139,250,0.2);
-}
-.icon-card.selected::after{
-  content:'\2713';
-  position:absolute;top:10px;right:10px;
-  width:26px;height:26px;border-radius:50%;
-  background:#7c3aed;color:#fff;font-size:13px;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:700;
-  box-shadow:0 2px 8px rgba(124,58,237,0.3);
-}
-.icon-card img{width:100%;height:100px;object-fit:contain;border-radius:12px;margin-bottom:10px}
-.icon-card .name{font-size:12px;font-weight:600;color:#4b5563}
-
-/* ---- Buttons ---- */
-.btn{
-  padding:12px 24px;
-  border-radius:100px;
-  border:none;
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all .2s ease;
-  font-family:'Inter',sans-serif;
-  letter-spacing:-0.1px;
-}
-.btn-primary{
-  background:linear-gradient(135deg,#7c3aed,#a78bfa);
-  color:#fff;
-  box-shadow:0 2px 8px rgba(124,58,237,0.25);
-}
-.btn-primary:hover{
-  box-shadow:0 4px 16px rgba(124,58,237,0.35);
-  transform:translateY(-1px);
-}
-.btn-outline{
-  background:transparent;
-  border:1.5px solid #e5e7eb;
-  color:#4b5563;
-}
-.btn-outline:hover{background:#f9fafb;border-color:#d1d5db}
-.btn-danger{
-  background:#ef4444;color:#fff;
-  box-shadow:0 2px 8px rgba(239,68,68,0.2);
-}
-.btn-danger:hover{background:#dc2626;box-shadow:0 4px 12px rgba(239,68,68,0.3)}
-.btn-sm{padding:8px 18px;font-size:12px}
-
-/* ---- Sticker grid ---- */
-.sticker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;margin-top:16px}
-.sticker-card{
-  background:#FAFAF9;
-  border-radius:16px;
-  padding:14px;
-  text-align:center;
-  border:1px solid rgba(0,0,0,0.05);
-  box-shadow:0 1px 3px rgba(0,0,0,0.03);
-  position:relative;
-  transition:all .2s ease;
-}
-.sticker-card:hover{
-  box-shadow:0 4px 12px rgba(0,0,0,0.06);
-  transform:translateY(-1px);
-}
-.sticker-card img{width:100%;height:100px;object-fit:contain;border-radius:12px;margin-bottom:8px}
-.sticker-card .name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151}
-.sticker-card .category{font-size:11px;color:#9ca3af;font-weight:500}
-.sticker-card .delete-btn{
-  position:absolute;top:8px;right:8px;
-  width:26px;height:26px;border-radius:50%;
-  background:#fee2e2;color:#ef4444;border:none;font-size:14px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:all .2s;
-  font-weight:600;
-}
-.sticker-card:hover .delete-btn{opacity:1}
-.sticker-card .delete-btn:hover{background:#fecaca}
-
-/* ---- Forms ---- */
-.form-row{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
-.form-field{flex:1;min-width:150px}
-.form-field label{display:block;font-size:12px;font-weight:600;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
-.form-field input,.form-field select{
-  width:100%;padding:12px 16px;
-  border:1.5px solid #e5e7eb;
-  border-radius:12px;font-size:13px;
-  outline:none;
-  background:#FAFAF9;
-  font-family:'Inter',sans-serif;
-  transition:all .2s ease;
-  color:#1e1b2e;
-}
-.form-field input::placeholder{color:#c4b5fd}
-.form-field input:focus,.form-field select:focus{
-  border-color:#a78bfa;
-  box-shadow:0 0 0 3px rgba(167,139,250,0.15);
-  background:#fff;
-}
-
-/* ---- Toast ---- */
-.toast{
-  position:fixed;bottom:28px;right:28px;
-  background:#1e1b2e;
-  color:#fff;
-  padding:14px 24px;
-  border-radius:16px;
-  font-size:13px;font-weight:600;
-  opacity:0;
-  transform:translateY(12px);
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-  pointer-events:none;z-index:100;
-  box-shadow:0 8px 32px rgba(30,27,46,0.2);
-  font-family:'Inter',sans-serif;
-}
-.toast.show{opacity:1;transform:translateY(0)}
-
-.empty{text-align:center;padding:40px 20px;color:#c4b5fd;font-size:13px;font-weight:500}
 
 /* ---- Stats ---- */
-.stats{display:flex;gap:16px;margin-bottom:28px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
 .stat{
-  flex:1;
-  background:#fff;
-  padding:20px 24px;
-  border-radius:16px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.03);
-  border:1px solid rgba(0,0,0,0.04);
+  background:var(--card);
+  padding:18px 20px;
+  border-radius:var(--radius);
+  border:1.5px solid var(--border);
   transition:all .2s ease;
   position:relative;
   overflow:hidden;
 }
 .stat::before{
   content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#a78bfa,#f472b6);
   border-radius:3px 3px 0 0;
-  opacity:0;
-  transition:opacity .2s;
+  opacity:0;transition:opacity .2s;
 }
+.stat:nth-child(1)::before{background:var(--coral)}
+.stat:nth-child(2)::before{background:var(--mint)}
+.stat:nth-child(3)::before{background:var(--yellow)}
 .stat:hover::before{opacity:1}
-.stat:hover{box-shadow:0 4px 20px rgba(167,139,250,0.12);transform:translateY(-2px)}
-.stat .val{font-size:24px;font-weight:700;color:#1e1b2e;letter-spacing:-0.5px}
-.stat .label{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
-.status-badge{
-  display:inline-block;padding:5px 12px;border-radius:100px;
-  font-size:11px;font-weight:600;
-  background:#d1fae5;color:#065f46;
+.stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.06)}
+.stat .val{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.5px
 }
+.stat .label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-top:4px}
+
+/* ---- Section cards ---- */
+.section{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px 20px;
+  margin-bottom:16px;
+  border:1.5px solid var(--border);
+  transition:all .2s;
+  animation:fadeUp .4s ease both;
+}
+.section:nth-child(2){animation-delay:.05s}
+.section:nth-child(3){animation-delay:.1s}
+.section:nth-child(4){animation-delay:.15s}
+.section:nth-child(5){animation-delay:.2s}
+.section:hover{box-shadow:0 8px 24px rgba(0,0,0,0.04)}
+.section h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:17px;font-weight:700;margin-bottom:4px;
+  letter-spacing:-0.3px;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.section h2 .emoji{font-size:18px}
+.section p{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+
+/* ---- Icon / Splash grid ---- */
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.icon-card{
+  background:var(--bg);
+  border-radius:var(--radius-sm);
+  padding:14px 10px;
+  text-align:center;
+  border:2px solid transparent;
+  cursor:pointer;
+  transition:all .15s ease;
+  position:relative;
+}
+.icon-card:hover{
+  border-color:var(--border);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+.icon-card.selected{
+  border-color:var(--coral);
+  background:#FFF0F0;
+}
+.icon-card.selected::after{
+  content:'';
+  position:absolute;top:8px;right:8px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--coral);
+  display:flex;align-items:center;justify-content:center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  background-size:14px;background-position:center;background-repeat:no-repeat;
+  box-shadow:0 2px 8px rgba(255,107,107,0.3);
+}
+.icon-card img{width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:8px}
+.icon-card .name{font-size:11px;font-weight:600;color:var(--text)}
+
+/* ---- Buttons ---- */
+.btn{
+  padding:10px 20px;
+  border-radius:100px;
+  border:none;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s ease;
+  font-family:'Inter',sans-serif;
+}
+.btn-primary{
+  background:var(--coral);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(255,107,107,0.25);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,107,0.35)}
+.btn-outline{
+  background:transparent;
+  border:1.5px solid var(--border);
+  color:var(--text);
+}
+.btn-outline:hover{background:var(--bg);border-color:#d1d5db}
+.btn-sm{padding:8px 16px;font-size:12px}
+
+/* ---- Sticker grid ---- */
+.sticker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:16px}
+.sticker-card{
+  background:var(--bg);
+  border-radius:var(--radius-sm);
+  padding:12px;
+  text-align:center;
+  border:1.5px solid var(--border);
+  position:relative;
+  transition:all .15s ease;
+}
+.sticker-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.sticker-card img{width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px}
+.sticker-card .name{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.sticker-card .category{font-size:10px;color:var(--muted);font-weight:500}
+.sticker-card .delete-btn{
+  position:absolute;top:6px;right:6px;
+  width:24px;height:24px;border-radius:50%;
+  background:#FFE5E5;color:var(--coral);border:none;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:all .15s;
+  font-weight:700;
+}
+.sticker-card:hover .delete-btn{opacity:1}
+.sticker-card .delete-btn:hover{background:#FFCACA}
+
+/* ---- Forms ---- */
+.form-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.form-field label{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.form-field input,.form-field select{
+  width:100%;padding:10px 14px;
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:13px;
+  outline:none;
+  background:var(--bg);
+  font-family:'Inter',sans-serif;
+  transition:all .15s ease;
+  color:var(--text);
+}
+.form-field input::placeholder{color:#d1d5db}
+.form-field input:focus,.form-field select:focus{
+  border-color:var(--coral);
+  box-shadow:0 0 0 3px rgba(255,107,107,0.1);
+  background:#fff;
+}
+.form-field input[type="file"]{display:none}
+
+/* ---- Toast ---- */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--dark);
+  color:#fff;
+  padding:12px 24px;
+  border-radius:100px;
+  font-size:13px;font-weight:600;
+  opacity:0;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;z-index:100;
+  box-shadow:0 8px 32px rgba(26,26,46,0.25);
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.empty{text-align:center;padding:32px 16px;color:var(--lavender);font-size:12px;font-weight:500}
 
 /* ---- Splash upload ---- */
 .splash-upload-area{
-  border:2px dashed #d4c7f7;
-  border-radius:20px;
-  padding:40px 24px;
+  border:2px dashed var(--border);
+  border-radius:var(--radius);
+  padding:32px 20px;
   text-align:center;
   cursor:pointer;
-  transition:all .2s ease;
+  transition:all .15s ease;
   position:relative;
-  background:#faf8ff;
+  background:var(--bg);
 }
 .splash-upload-area:hover{
-  border-color:#a78bfa;
-  background:#EDE9FE;
+  border-color:var(--mint);
+  background:#F0FFFD;
   transform:translateY(-2px);
-  box-shadow:0 4px 16px rgba(167,139,250,0.12);
 }
 .splash-upload-area.dragover{
-  border-color:#7c3aed;
-  background:#EDE9FE;
-  box-shadow:0 4px 24px rgba(124,58,237,0.18);
+  border-color:var(--mint);
+  background:#E5FFFC;
+  box-shadow:0 4px 24px rgba(78,205,196,0.15);
 }
 .splash-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
 .splash-upload-area .upload-icon{
-  font-size:40px;margin-bottom:12px;
-  color:#c4b5fd;
+  font-size:36px;margin-bottom:8px;
+  color:var(--mint);
   line-height:1;
 }
-.splash-upload-area .upload-text{font-size:13px;color:#9ca3af;line-height:1.6}
-.splash-upload-area .upload-text strong{color:#7c3aed;font-weight:600}
-.splash-preview{margin-top:20px;display:none}
-.splash-preview img{max-width:200px;max-height:120px;border-radius:14px;border:1px solid #e5e7eb}
-.splash-preview .preview-actions{margin-top:14px;display:flex;gap:10px;justify-content:center}
-.upload-status{font-size:12px;color:#9ca3af;margin-top:10px;font-weight:500}
-.upload-status.uploading{color:#a78bfa}
+.splash-upload-area .upload-text{font-size:12px;color:var(--muted);line-height:1.6}
+.splash-upload-area .upload-text strong{color:var(--mint);font-weight:600}
+.splash-preview{margin-top:16px;display:none}
+.splash-preview img{max-width:180px;max-height:100px;border-radius:var(--radius-sm);border:1.5px solid var(--border)}
+.splash-preview .preview-actions{margin-top:12px;display:flex;gap:8px;justify-content:center}
+.upload-status{font-size:11px;color:var(--muted);margin-top:8px;font-weight:500}
+.upload-status.uploading{color:var(--mint)}
 .upload-status.success{color:#34d399}
-.upload-status.error{color:#f87171}
+.upload-status.error{color:var(--coral)}
 
 /* ---- Event log ---- */
 .event-log{
-  max-height:160px;overflow-y:auto;
-  background:#FAFAF9;
-  border-radius:14px;
-  padding:14px;
-  margin-top:14px;
+  max-height:140px;overflow-y:auto;
+  background:var(--bg);
+  border-radius:var(--radius-sm);
+  padding:12px;
+  margin-top:12px;
   font-size:11px;
-  font-family:'Inter',monospace;
-  color:#9ca3af;
-  border:1px solid rgba(0,0,0,0.04);
+  font-family:'Space Grotesk',monospace;
+  color:var(--muted);
+  border:1.5px solid var(--border);
 }
-.event-log .event-entry{padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.03)}
+.event-log .event-entry{padding:3px 0;border-bottom:1px solid var(--border)}
 .event-log .event-entry:last-child{border-bottom:none}
-.event-log .event-time{color:#c4b5fd;margin-right:8px;font-weight:500}
-.event-log .event-type{font-weight:600;color:#7c3aed}
+.event-log .event-time{color:var(--lavender);margin-right:8px;font-weight:500}
+.event-log .event-type{font-weight:600;color:var(--coral)}
 
 /* ---- Scrollbar ---- */
-::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#d4c7f7;border-radius:100px}
-::-webkit-scrollbar-thumb:hover{background:#a78bfa}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:100px}
+::-webkit-scrollbar-thumb:hover{background:#d1d5db}
+
+/* ---- Responsive ---- */
+@media(max-width:640px){
+  .header{padding:14px 16px;gap:8px}
+  .header h1{font-size:17px}
+  .header .tag{font-size:9px;padding:2px 8px}
+  .live-badge{padding:5px 10px;font-size:10px}
+  .container{padding:16px 12px 40px}
+  .stats{grid-template-columns:1fr;gap:8px}
+  .stat{padding:14px 16px}
+  .stat .val{font-size:20px}
+  .section{padding:18px 14px}
+  .section h2{font-size:15px}
+  .icon-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .icon-card{padding:10px 6px}
+  .icon-card img{height:56px}
+  .icon-card .name{font-size:10px}
+  .form-row{grid-template-columns:1fr}
+  .sticker-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .sticker-card{padding:8px}
+  .sticker-card img{height:56px}
+  .splash-upload-area{padding:24px 16px}
+  .btn{padding:10px 18px;font-size:12px}
+  .toast{bottom:16px;font-size:12px;padding:10px 20px}
+}
+
+@media(min-width:641px) and (max-width:900px){
+  .container{padding:24px 20px 48px}
+  .icon-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  .form-row{grid-template-columns:1fr 1fr 1fr}
+}
+
+@media(min-width:901px){
+  .container{padding:32px 24px 60px}
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Couple Canvas</h1>
-  <span>CMS</span>
+  <h1>ustwo</h1>
+  <div class="tag">cms</div>
   <div class="live-badge">
     <span class="live-dot disconnected" id="liveDot"></span>
-    <span id="liveText">Connecting...</span>
+    <span id="liveText">connecting</span>
   </div>
 </div>
 
@@ -322,43 +375,43 @@ body{
       <div class="label">Stickers</div>
     </div>
     <div class="stat">
-      <div class="val" id="statIcon">—</div>
+      <div class="val" id="statIcon">--</div>
       <div class="label">Active Icon</div>
     </div>
     <div class="stat">
-      <div class="val" id="statSplash">—</div>
+      <div class="val" id="statSplash">--</div>
       <div class="label">Active Splash</div>
     </div>
   </div>
 
   <!-- App Icon Selection -->
   <div class="section">
-    <h2>App Icon</h2>
-    <p>Select which pre-bundled icon variant is active. The app will switch to this icon on next launch.</p>
+    <h2><span class="emoji">&#127912;</span> App Icon</h2>
+    <p>Pick the launcher icon for the app. Changes sync to the phone within seconds.</p>
     <div class="icon-grid" id="iconGrid"></div>
   </div>
 
   <!-- Splash Screen Selection -->
   <div class="section">
-    <h2>Splash Screen</h2>
-    <p>Select which splash screen variant is shown when the app launches.</p>
+    <h2><span class="emoji">&#127747;</span> Splash Screen</h2>
+    <p>Choose which splash screen shows when the app opens.</p>
     <div class="icon-grid" id="splashGrid"></div>
   </div>
 
   <!-- Upload Custom Splash Screen -->
   <div class="section">
-    <h2>Upload Custom Splash Screen</h2>
-    <p>Upload your own image to use as the splash screen. It will be added to the selection grid above.</p>
+    <h2><span class="emoji">&#128228;</span> Upload Splash</h2>
+    <p>Drop your own image to use as a custom splash screen.</p>
     <div class="splash-upload-area" id="splashUploadArea">
       <div class="upload-icon">+</div>
       <div class="upload-text"><strong>Click to upload</strong> or drag and drop</div>
-      <div class="upload-text" style="font-size:11px;margin-top:4px">PNG, JPG, WebP up to 5MB</div>
+      <div class="upload-text" style="font-size:10px;margin-top:4px">PNG, JPG, WebP up to 5MB</div>
       <input type="file" id="splashFileInput" accept="image/*" />
     </div>
     <div class="splash-preview" id="splashPreview">
       <img id="splashPreviewImg" src="" alt="Preview" />
       <div class="preview-actions">
-        <button class="btn btn-primary btn-sm" id="splashUploadBtn">Upload Splash</button>
+        <button class="btn btn-primary btn-sm" id="splashUploadBtn">Upload</button>
         <button class="btn btn-outline btn-sm" id="splashCancelBtn">Cancel</button>
       </div>
     </div>
@@ -367,11 +420,11 @@ body{
 
   <!-- Stickers Section -->
   <div class="section">
-    <h2>Stickers & Images</h2>
-    <p>Add stickers and images that appear in the whiteboard and snap sections of the app.</p>
+    <h2><span class="emoji">&#127916;</span> Stickers</h2>
+    <p>Add stickers for the whiteboard and snaps.</p>
     <div class="form-row">
       <div class="form-field">
-        <label>Sticker Name</label>
+        <label>Name</label>
         <input type="text" id="stickerName" placeholder="e.g. Heart" />
       </div>
       <div class="form-field">
@@ -386,21 +439,21 @@ body{
         </select>
       </div>
       <div class="form-field" style="display:flex;align-items:flex-end">
-        <label class="btn btn-outline" for="stickerInput" style="text-align:center;width:100%">Choose File</label>
+        <label class="btn btn-outline" for="stickerInput" style="text-align:center;width:100%;cursor:pointer">Choose File</label>
         <input type="file" id="stickerInput" accept="image/*" />
       </div>
     </div>
-    <div id="stickerUploadStatus" style="font-size:12px;color:#71717a;margin-bottom:8px"></div>
+    <div id="stickerUploadStatus" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
     <div class="sticker-grid" id="stickerGrid"></div>
-    <div class="empty" id="stickerEmpty">No stickers yet. Upload your first one above.</div>
+    <div class="empty" id="stickerEmpty">no stickers yet. upload your first one.</div>
   </div>
 
   <!-- Realtime Event Log -->
   <div class="section">
-    <h2>Live Events</h2>
-    <p>Real-time updates from the server. Changes appear here instantly.</p>
+    <h2><span class="emoji">&#9889;</span> Live Events</h2>
+    <p>Real-time server updates.</p>
     <div class="event-log" id="eventLog">
-      <div class="empty" style="padding:12px">Waiting for events...</div>
+      <div class="empty" style="padding:10px">waiting for events...</div>
     </div>
   </div>
 </div>
@@ -431,59 +484,58 @@ function connectSSE() {
 
   evtSource.onopen = () => {
     document.getElementById('liveDot').className = 'live-dot connected';
-    document.getElementById('liveText').textContent = 'Live';
-    addEventLog('system', 'Connected to server');
+    document.getElementById('liveText').textContent = 'live';
+    addEventLog('system', 'connected to server');
   };
 
   evtSource.addEventListener('splash-changed', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('splash-changed', 'Splash changed to: ' + (data.activeSplash || data.key || 'unknown'));
+    addEventLog('splash', 'changed to ' + (data.activeSplash || data.key || '?'));
     loadSplashSection();
     updateStats();
   });
 
   evtSource.addEventListener('icon-changed', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('icon-changed', 'Icon changed to: ' + (data.activeIcon || data.key || 'unknown'));
+    addEventLog('icon', 'changed to ' + (data.activeIcon || data.key || '?'));
     loadIconSection();
     updateStats();
   });
 
   evtSource.addEventListener('sticker-added', (e) => {
     const data = JSON.parse(e.data);
-    addEventLog('sticker-added', 'Sticker added: ' + (data.name || 'unknown'));
+    addEventLog('sticker', 'added: ' + (data.name || '?'));
     loadStickersSection();
     updateStats();
   });
 
   evtSource.addEventListener('sticker-deleted', (e) => {
-    addEventLog('sticker-deleted', 'Sticker removed');
+    addEventLog('sticker', 'removed');
     loadStickersSection();
     updateStats();
   });
 
   evtSource.addEventListener('splash-uploaded', (e) => {
-    addEventLog('splash-uploaded', 'Custom splash uploaded');
+    addEventLog('splash', 'custom uploaded');
     loadSplashSection();
     updateStats();
   });
 
   evtSource.addEventListener('sticker-updated', (e) => {
-    addEventLog('sticker-updated', 'Sticker updated');
+    addEventLog('sticker', 'updated');
     loadStickersSection();
     updateStats();
   });
 
   evtSource.addEventListener('connected', (e) => {
-    addEventLog('system', 'SSE session established');
+    addEventLog('system', 'session established');
   });
 
   evtSource.onerror = () => {
     document.getElementById('liveDot').className = 'live-dot disconnected';
-    document.getElementById('liveText').textContent = 'Reconnecting...';
-    addEventLog('system', 'Connection lost, reconnecting...');
+    document.getElementById('liveText').textContent = 'reconnecting';
+    addEventLog('system', 'connection lost...');
     evtSource.close();
-    // Reconnect after 3 seconds
     clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(connectSSE, 3000);
   };
@@ -497,11 +549,10 @@ function addEventLog(type, message) {
   const entry = document.createElement('div');
   entry.className = 'event-entry';
   const now = new Date();
-  const time = now.toLocaleTimeString();
-  entry.innerHTML = `<span class="event-time">${time}</span><span class="event-type">[${type}]</span> ${message}`;
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  entry.innerHTML = `<span class="event-time">${time}</span><span class="event-type">${type}</span> ${message}`;
   log.insertBefore(entry, log.firstChild);
 
-  // Keep only last 50 entries
   while (log.children.length > 50) {
     log.removeChild(log.lastChild);
   }
@@ -534,7 +585,6 @@ async function loadIconSection() {
     const res = await fetch(`${API}/api/data`);
     cachedData = await res.json();
     renderIconGrid(cachedData);
-    renderSplashGrid(cachedData);
   } catch (e) {
     console.error('Icon reload error:', e);
   }
@@ -644,11 +694,9 @@ async function selectIcon(key) {
       body: JSON.stringify({ key })
     });
     if (!res.ok) throw new Error('Failed to set icon');
-    // Immediately update UI without waiting for SSE
     cachedData.activeIcon = key;
     renderIconGrid(cachedData);
     updateStatsFromData(cachedData);
-    // Trigger pulse animation on the newly selected card
     const cards = document.querySelectorAll('#iconGrid .icon-card');
     cards.forEach(card => {
       if (card.classList.contains('selected')) {
@@ -656,9 +704,9 @@ async function selectIcon(key) {
         card.addEventListener('animationend', () => card.classList.remove('just-selected'), { once: true });
       }
     });
-    showToast('Active icon updated to ' + key);
+    showToast('icon updated');
   } catch (err) {
-    showToast('Failed to update icon');
+    showToast('failed to update icon');
   }
 }
 
@@ -670,11 +718,9 @@ async function selectSplash(key) {
       body: JSON.stringify({ key })
     });
     if (!res.ok) throw new Error('Failed to set splash');
-    // Immediately update UI without waiting for SSE
     cachedData.activeSplash = key;
     renderSplashGrid(cachedData);
     updateStatsFromData(cachedData);
-    // Trigger pulse animation on the newly selected card
     const cards = document.querySelectorAll('#splashGrid .icon-card');
     cards.forEach(card => {
       if (card.classList.contains('selected')) {
@@ -682,9 +728,9 @@ async function selectSplash(key) {
         card.addEventListener('animationend', () => card.classList.remove('just-selected'), { once: true });
       }
     });
-    showToast('Active splash updated to ' + key);
+    showToast('splash updated');
   } catch (err) {
-    showToast('Failed to update splash');
+    showToast('failed to update splash');
   }
 }
 
@@ -699,7 +745,6 @@ const splashUploadBtn = document.getElementById('splashUploadBtn');
 const splashCancelBtn = document.getElementById('splashCancelBtn');
 const splashUploadStatus = document.getElementById('splashUploadStatus');
 
-// Drag and drop
 splashUploadArea.addEventListener('dragover', (e) => {
   e.preventDefault();
   splashUploadArea.classList.add('dragover');
@@ -723,7 +768,7 @@ splashFileInput.addEventListener('change', (e) => {
 
 function handleSplashFileSelect(file) {
   if (file.size > 5 * 1024 * 1024) {
-    showToast('File too large. Max 5MB.');
+    showToast('file too large (max 5mb)');
     return;
   }
   selectedSplashFile = file;
@@ -738,7 +783,7 @@ function handleSplashFileSelect(file) {
 
 splashUploadBtn.addEventListener('click', async () => {
   if (!selectedSplashFile) return;
-  splashUploadStatus.textContent = 'Uploading...';
+  splashUploadStatus.textContent = 'uploading...';
   splashUploadStatus.className = 'upload-status uploading';
   splashUploadBtn.disabled = true;
 
@@ -747,16 +792,14 @@ splashUploadBtn.addEventListener('click', async () => {
     fd.append('splash', selectedSplashFile);
     const res = await fetch(`${API}/api/splash`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error('Upload failed');
-    const data = await res.json();
-    showToast('Custom splash uploaded!');
-    splashUploadStatus.textContent = 'Upload complete!';
+    showToast('splash uploaded');
+    splashUploadStatus.textContent = 'done!';
     splashUploadStatus.className = 'upload-status success';
     resetSplashUpload();
-    // SSE will trigger reload, but also reload manually as fallback
     setTimeout(loadData, 500);
   } catch (err) {
-    showToast('Failed to upload splash');
-    splashUploadStatus.textContent = 'Upload failed. Try again.';
+    showToast('upload failed');
+    splashUploadStatus.textContent = 'failed, try again';
     splashUploadStatus.className = 'upload-status error';
   } finally {
     splashUploadBtn.disabled = false;
@@ -784,29 +827,27 @@ document.getElementById('stickerInput').addEventListener('change', async (e) => 
   fd.append('sticker', file);
   fd.append('name', name);
   fd.append('category', category);
-  document.getElementById('stickerUploadStatus').textContent = 'Uploading...';
+  document.getElementById('stickerUploadStatus').textContent = 'uploading...';
   try {
     const res = await fetch(`${API}/api/stickers`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error('Upload failed');
-    showToast('Sticker added');
+    showToast('sticker added');
     document.getElementById('stickerName').value = '';
     document.getElementById('stickerUploadStatus').textContent = '';
-    // SSE will trigger reload
   } catch (err) {
-    showToast('Failed to upload sticker');
+    showToast('upload failed');
     document.getElementById('stickerUploadStatus').textContent = '';
   }
   e.target.value = '';
 });
 
 async function deleteSticker(id) {
-  if (!confirm('Delete this sticker?')) return;
+  if (!confirm('delete this sticker?')) return;
   try {
     await fetch(`${API}/api/stickers/${id}`, { method: 'DELETE' });
-    showToast('Sticker deleted');
-    // SSE will trigger reload
+    showToast('sticker deleted');
   } catch (err) {
-    showToast('Failed to delete sticker');
+    showToast('failed to delete');
   }
 }
 

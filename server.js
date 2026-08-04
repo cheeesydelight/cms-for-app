@@ -59,11 +59,9 @@ app.get('/api/events', (req, res) => {
 
 // ─── Pre-bundled icon catalog ────────────────────────────────────────────────
 const ICON_CATALOG = [
-  { key: 'icon1', name: 'Icon 1', file: '/icons/icon1.webp' },
-  { key: 'icon2', name: 'Icon 2', file: '/icons/icon2.webp' },
-  { key: 'icon3', name: 'Icon 3', file: '/icons/icon3.webp' },
-  { key: 'icon4', name: 'Icon 4', file: '/icons/icon4.webp' },
-  { key: 'icon5', name: 'Icon 5', file: '/icons/icon5.webp' },
+  { key: 'icon1', name: 'Purple', file: '/icons/icon1.webp' },
+  { key: 'icon2', name: 'Pink', file: '/icons/icon2.webp' },
+  { key: 'icon3', name: 'Green', file: '/icons/icon3.webp' },
 ];
 
 // ─── Pre-bundled splash screen catalog (expanded with new assets) ────────────
@@ -101,7 +99,12 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 function loadData() {
   if (fs.existsSync(DATA_FILE)) {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (data.activeIcon === 'icon4' || data.activeIcon === 'icon5') {
+      data.activeIcon = 'icon1';
+      saveData(data);
+    }
+    return data;
   }
   return { appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] };
 }
@@ -122,7 +125,8 @@ async function syncFromCloudinary() {
     }
 
     console.log('Syncing data from Cloudinary...');
-    const data = { appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] };
+    // Load existing data to preserve active selections
+    const data = loadData();
 
     // Fetch icons
     const icons = await cloudinary.api.resources({
