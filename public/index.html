@@ -69,6 +69,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="val" id="statIcon">—</div>
       <div class="label">Active Icon</div>
     </div>
+    <div class="stat">
+      <div class="val" id="statSplash">—</div>
+      <div class="label">Active Splash</div>
+    </div>
   </div>
 
   <!-- App Icon Selection -->
@@ -76,6 +80,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <h2>App Icon</h2>
     <p>Select which pre-bundled icon variant is active. The app will switch to this icon on next launch.</p>
     <div class="icon-grid" id="iconGrid"></div>
+  </div>
+
+  <!-- Splash Screen Selection -->
+  <div class="section">
+    <h2>Splash Screen</h2>
+    <p>Select which splash screen variant is shown when the app launches.</p>
+    <div class="icon-grid" id="splashGrid"></div>
   </div>
 
   <!-- Stickers Section -->
@@ -145,6 +156,25 @@ async function loadData() {
 
     document.getElementById('statIcon').textContent = catalog.find(i => i.key === activeKey)?.name || activeKey;
 
+    // Splash selection grid
+    const splashGrid = document.getElementById('splashGrid');
+    splashGrid.innerHTML = '';
+    const splashCatalog = data.splashCatalog || [];
+    const activeSplashKey = data.activeSplash || 'splash1';
+
+    splashCatalog.forEach(splash => {
+      const card = document.createElement('div');
+      card.className = 'icon-card' + (splash.key === activeSplashKey ? ' selected' : '');
+      card.innerHTML = `
+        <img src="${splash.file}" alt="${splash.name}" />
+        <div class="name">${splash.name}</div>
+      `;
+      card.onclick = () => selectSplash(splash.key);
+      splashGrid.appendChild(card);
+    });
+
+    document.getElementById('statSplash').textContent = splashCatalog.find(s => s.key === activeSplashKey)?.name || activeSplashKey;
+
     // Stickers
     const stickerGrid = document.getElementById('stickerGrid');
     const empty = document.getElementById('stickerEmpty');
@@ -184,6 +214,22 @@ async function selectIcon(key) {
     loadData();
   } catch (err) {
     showToast('Failed to update icon');
+  }
+}
+
+// Select splash
+async function selectSplash(key) {
+  try {
+    const res = await fetch(`${API}/api/active-splash`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key })
+    });
+    if (!res.ok) throw new Error('Failed to set splash');
+    showToast('Active splash updated to ' + key);
+    loadData();
+  } catch (err) {
+    showToast('Failed to update splash');
   }
 }
 

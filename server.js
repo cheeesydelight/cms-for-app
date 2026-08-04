@@ -37,6 +37,11 @@ const ICON_CATALOG = [
   { key: 'icon5', name: 'Icon 5', file: '/icons/icon5.webp' },
 ];
 
+// Pre-bundled splash screen catalog
+const SPLASH_CATALOG = [
+  { key: 'splash1', name: 'Splash 1', file: '/splash/splash1.jpg' },
+];
+
 // In-memory metadata store (persists to JSON file)
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -44,7 +49,7 @@ function loadData() {
   if (fs.existsSync(DATA_FILE)) {
     return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   }
-  return { appIcon: null, activeIcon: 'icon1', stickers: [] };
+  return { appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] };
 }
 
 function saveData(data) {
@@ -57,13 +62,13 @@ async function syncFromCloudinary() {
     if (!cloudName || !apiKey || !apiSecret) {
       console.log('Skipping Cloudinary sync — credentials not configured');
       if (!fs.existsSync(DATA_FILE)) {
-        saveData({ appIcon: null, activeIcon: 'icon1', stickers: [] });
+        saveData({ appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] });
       }
       return;
     }
 
     console.log('Syncing data from Cloudinary...');
-    const data = { appIcon: null, activeIcon: 'icon1', stickers: [] };
+    const data = { appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] };
 
     // Fetch icons
     const icons = await cloudinary.api.resources({
@@ -102,7 +107,7 @@ async function syncFromCloudinary() {
   } catch (err) {
     console.error('Cloudinary sync failed:', err.message || JSON.stringify(err));
     if (!fs.existsSync(DATA_FILE)) {
-      saveData({ appIcon: null, activeIcon: 'icon1', stickers: [] });
+      saveData({ appIcon: null, activeIcon: 'icon1', activeSplash: 'splash1', stickers: [] });
     }
   }
 }
@@ -152,6 +157,7 @@ app.get('/health', (req, res) => {
 app.get('/api/data', (req, res) => {
   const data = loadData();
   data.iconCatalog = ICON_CATALOG;
+  data.splashCatalog = SPLASH_CATALOG;
   res.json(data);
 });
 
@@ -174,6 +180,27 @@ app.post('/api/active-icon', (req, res) => {
   saveData(data);
   const icon = ICON_CATALOG.find(i => i.key === key);
   res.json({ activeIcon: key, icon });
+});
+
+// API: Get active splash
+app.get('/api/active-splash', (req, res) => {
+  const data = loadData();
+  const activeKey = data.activeSplash || 'splash1';
+  const splash = SPLASH_CATALOG.find(s => s.key === activeKey) || SPLASH_CATALOG[0];
+  res.json({ activeSplash: activeKey, splash });
+});
+
+// API: Set active splash
+app.post('/api/active-splash', (req, res) => {
+  const { key } = req.body;
+  if (!key || !SPLASH_CATALOG.find(s => s.key === key)) {
+    return res.status(400).json({ error: 'Invalid splash key. Valid keys: ' + SPLASH_CATALOG.map(s => s.key).join(', ') });
+  }
+  const data = loadData();
+  data.activeSplash = key;
+  saveData(data);
+  const splash = SPLASH_CATALOG.find(s => s.key === key);
+  res.json({ activeSplash: key, splash });
 });
 
 // API: Upload icon
