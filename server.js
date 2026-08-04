@@ -32,7 +32,7 @@ cloudinary.config({
 const sseClients = [];
 
 function broadcast(eventType, data) {
-  const payload = `data: ${JSON.stringify({ type: eventType, payload: data })}\n\n`;
+  const payload = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
   sseClients.forEach((res, i) => {
     try {
       res.write(payload);
