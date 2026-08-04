@@ -14,10 +14,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .section{background:#fff;border-radius:16px;padding:28px;margin-bottom:24px;border:1px solid #e4e4e7}
 .section h2{font-size:17px;font-weight:700;margin-bottom:4px}
 .section p{font-size:13px;color:#71717a;margin-bottom:20px}
-.icon-preview{width:120px;height:120px;border-radius:24px;border:2px dashed #d4d4d8;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:16px;background:#f4f4f5}
-.icon-preview img{width:100%;height:100%;object-fit:cover}
-.icon-preview .placeholder{font-size:40px;color:#d4d4d8}
-.upload-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
+.icon-card{background:#f9f9f9;border-radius:12px;padding:12px;text-align:center;border:2px solid #e4e4e7;cursor:pointer;transition:all .15s;position:relative}
+.icon-card:hover{border-color:#a1a1aa}
+.icon-card.selected{border-color:#18181b;background:#f4f4f5}
+.icon-card.selected::after{content:'✓';position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:12px;background:#18181b;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.icon-card img{width:100%;height:100px;object-fit:contain;border-radius:8px;margin-bottom:8px}
+.icon-card .name{font-size:12px;font-weight:600}
 .btn{padding:10px 20px;border-radius:100px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
 .btn-primary{background:#18181b;color:#fff}
 .btn-primary:hover{background:#27272a}
@@ -26,7 +29,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-danger{background:#ef4444;color:#fff}
 .btn-danger:hover{background:#dc2626}
 .btn-sm{padding:6px 14px;font-size:12px}
-input[type=file]{display:none}
 .sticker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;margin-top:16px}
 .sticker-card{background:#f9f9f9;border-radius:12px;padding:12px;text-align:center;border:1px solid #e4e4e7;position:relative}
 .sticker-card img{width:100%;height:100px;object-fit:contain;border-radius:8px;margin-bottom:8px}
@@ -46,6 +48,7 @@ input[type=file]{display:none}
 .stat{background:#f4f4f5;padding:12px 20px;border-radius:10px}
 .stat .val{font-size:22px;font-weight:700}
 .stat .label{font-size:11px;color:#71717a}
+.status-badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46}
 </style>
 </head>
 <body>
@@ -64,23 +67,15 @@ input[type=file]{display:none}
     </div>
     <div class="stat">
       <div class="val" id="statIcon">—</div>
-      <div class="label">App Icon</div>
+      <div class="label">Active Icon</div>
     </div>
   </div>
 
-  <!-- App Icon Section -->
+  <!-- App Icon Selection -->
   <div class="section">
     <h2>App Icon</h2>
-    <p>Upload the app icon. Recommended: 512x512 PNG with transparency.</p>
-    <div class="icon-preview" id="iconPreview">
-      <span class="placeholder" id="iconPlaceholder">+</span>
-      <img id="iconImg" style="display:none" />
-    </div>
-    <div class="upload-row">
-      <label class="btn btn-primary" for="iconInput">Upload Icon</label>
-      <input type="file" id="iconInput" accept="image/*" />
-      <span id="iconInfo" style="font-size:12px;color:#71717a"></span>
-    </div>
+    <p>Select which pre-bundled icon variant is active. The app will switch to this icon on next launch.</p>
+    <div class="icon-grid" id="iconGrid"></div>
   </div>
 
   <!-- Stickers Section -->
@@ -131,19 +126,29 @@ async function loadData() {
     const res = await fetch(`${API}/api/data`);
     const data = await res.json();
 
-    // Icon
-    if (data.appIcon) {
-      document.getElementById('iconImg').src = data.appIcon.url;
-      document.getElementById('iconImg').style.display = 'block';
-      document.getElementById('iconPlaceholder').style.display = 'none';
-      document.getElementById('iconInfo').textContent = `Uploaded ${new Date(data.appIcon.uploadedAt).toLocaleDateString()}`;
-      document.getElementById('statIcon').textContent = 'Set';
-    }
+    // Icon selection grid
+    const grid = document.getElementById('iconGrid');
+    grid.innerHTML = '';
+    const catalog = data.iconCatalog || [];
+    const activeKey = data.activeIcon || 'icon1';
+
+    catalog.forEach(icon => {
+      const card = document.createElement('div');
+      card.className = 'icon-card' + (icon.key === activeKey ? ' selected' : '');
+      card.innerHTML = `
+        <img src="${icon.file}" alt="${icon.name}" />
+        <div class="name">${icon.name}</div>
+      `;
+      card.onclick = () => selectIcon(icon.key);
+      grid.appendChild(card);
+    });
+
+    document.getElementById('statIcon').textContent = catalog.find(i => i.key === activeKey)?.name || activeKey;
 
     // Stickers
-    const grid = document.getElementById('stickerGrid');
+    const stickerGrid = document.getElementById('stickerGrid');
     const empty = document.getElementById('stickerEmpty');
-    grid.innerHTML = '';
+    stickerGrid.innerHTML = '';
     if (data.stickers.length === 0) {
       empty.style.display = 'block';
     } else {
@@ -157,7 +162,7 @@ async function loadData() {
           <div class="name">${s.name}</div>
           <div class="category">${s.category}</div>
         `;
-        grid.appendChild(card);
+        stickerGrid.appendChild(card);
       });
     }
     document.getElementById('statStickers').textContent = data.stickers.length;
@@ -166,22 +171,21 @@ async function loadData() {
   }
 }
 
-// Upload icon
-document.getElementById('iconInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const fd = new FormData();
-  fd.append('icon', file);
+// Select icon
+async function selectIcon(key) {
   try {
-    const res = await fetch(`${API}/api/icon`, { method: 'POST', body: fd });
-    if (!res.ok) throw new Error('Upload failed');
-    showToast('App icon updated');
+    const res = await fetch(`${API}/api/active-icon`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key })
+    });
+    if (!res.ok) throw new Error('Failed to set icon');
+    showToast('Active icon updated to ' + key);
     loadData();
   } catch (err) {
-    showToast('Failed to upload icon');
+    showToast('Failed to update icon');
   }
-  e.target.value = '';
-});
+}
 
 // Upload sticker
 document.getElementById('stickerInput').addEventListener('change', async (e) => {

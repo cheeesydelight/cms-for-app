@@ -28,6 +28,15 @@ cloudinary.config({
   api_secret: apiSecret,
 });
 
+// Pre-bundled icon catalog
+const ICON_CATALOG = [
+  { key: 'icon1', name: 'Icon 1', file: '/icons/icon1.webp' },
+  { key: 'icon2', name: 'Icon 2', file: '/icons/icon2.webp' },
+  { key: 'icon3', name: 'Icon 3', file: '/icons/icon3.webp' },
+  { key: 'icon4', name: 'Icon 4', file: '/icons/icon4.webp' },
+  { key: 'icon5', name: 'Icon 5', file: '/icons/icon5.webp' },
+];
+
 // In-memory metadata store (persists to JSON file)
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -35,7 +44,7 @@ function loadData() {
   if (fs.existsSync(DATA_FILE)) {
     return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   }
-  return { appIcon: null, stickers: [] };
+  return { appIcon: null, activeIcon: 'icon1', stickers: [] };
 }
 
 function saveData(data) {
@@ -48,13 +57,13 @@ async function syncFromCloudinary() {
     if (!cloudName || !apiKey || !apiSecret) {
       console.log('Skipping Cloudinary sync — credentials not configured');
       if (!fs.existsSync(DATA_FILE)) {
-        saveData({ appIcon: null, stickers: [] });
+        saveData({ appIcon: null, activeIcon: 'icon1', stickers: [] });
       }
       return;
     }
 
     console.log('Syncing data from Cloudinary...');
-    const data = { appIcon: null, stickers: [] };
+    const data = { appIcon: null, activeIcon: 'icon1', stickers: [] };
 
     // Fetch icons
     const icons = await cloudinary.api.resources({
@@ -93,7 +102,7 @@ async function syncFromCloudinary() {
   } catch (err) {
     console.error('Cloudinary sync failed:', err.message || JSON.stringify(err));
     if (!fs.existsSync(DATA_FILE)) {
-      saveData({ appIcon: null, stickers: [] });
+      saveData({ appIcon: null, activeIcon: 'icon1', stickers: [] });
     }
   }
 }
@@ -141,7 +150,30 @@ app.get('/health', (req, res) => {
 
 // API: Get all CMS data
 app.get('/api/data', (req, res) => {
-  res.json(loadData());
+  const data = loadData();
+  data.iconCatalog = ICON_CATALOG;
+  res.json(data);
+});
+
+// API: Get active icon
+app.get('/api/active-icon', (req, res) => {
+  const data = loadData();
+  const activeKey = data.activeIcon || 'icon1';
+  const icon = ICON_CATALOG.find(i => i.key === activeKey) || ICON_CATALOG[0];
+  res.json({ activeIcon: activeKey, icon });
+});
+
+// API: Set active icon
+app.post('/api/active-icon', (req, res) => {
+  const { key } = req.body;
+  if (!key || !ICON_CATALOG.find(i => i.key === key)) {
+    return res.status(400).json({ error: 'Invalid icon key. Valid keys: ' + ICON_CATALOG.map(i => i.key).join(', ') });
+  }
+  const data = loadData();
+  data.activeIcon = key;
+  saveData(data);
+  const icon = ICON_CATALOG.find(i => i.key === key);
+  res.json({ activeIcon: key, icon });
 });
 
 // API: Upload icon
